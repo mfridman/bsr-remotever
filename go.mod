@@ -1,4 +1,4 @@
-module github.com/mfridman/bsrver
+module github.com/mfridman/bsr-remotever
 
 go 1.20
 
