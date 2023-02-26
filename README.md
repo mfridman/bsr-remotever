@@ -5,6 +5,10 @@ This is an experimental command that prints the [BSR Remote Package](https://doc
 This command uses the BSR Go module proxy to obtain a client and hit the BSR API endpoints to
 resolve references.
 
+```sh
+go install github.com/mfridman/bsr-remotever@latest
+```
+
 ```
 require (
 	buf.build/gen/go/bufbuild/buf/bufbuild/connect-go v1.5.2-20230222163843-c806e06ce889.1
@@ -16,11 +20,11 @@ Note the latest plugin and module versions resolve to today's available versions
 tomorrow. Here's an example:
 
 ```sh
-$ go run main.go bufbuild/connect-go:latest buf.build/bufbuild/buf:latest | jq -r .version
+$ bsr-remotever bufbuild/connect-go:latest buf.build/bufbuild/buf:latest | jq -r .version
 
 v1.5.2-20230222163843-c806e06ce889.1
 
-$ go run main.go protocolbuffers/go:latest buf.build/bufbuild/buf:latest | jq -r .version
+$ bsr-remotever protocolbuffers/go:latest buf.build/bufbuild/buf:latest | jq -r .version
 
 v1.28.1-20230222163843-c806e06ce889.4
 ```
@@ -33,7 +37,7 @@ resolves to a specific commit (`c806e06ce8894eee9ba4932f95c8fa43`).
 We use the tag as a reference:
 
 ```sh
-$ go run main.go bufbuild/connect-es:latest buf.build/bufbuild/buf:60ee4a1ad9fe22392fea98967d858de8f15131ac | jq -r .version
+$ bsr-remotever bufbuild/connect-es:latest buf.build/bufbuild/buf:60ee4a1ad9fe22392fea98967d858de8f15131ac | jq -r .version
 
 v0.8.0-20230222163843-c806e06ce889.1
 ```
@@ -47,11 +51,11 @@ This command also returns the `go get ...` or `npm install ...` command with hel
 #### Go
 
 ```sh
-$ go run main.go bufbuild/connect-go:latest buf.build/bufbuild/buf:main | jq -r .command
+$ bsr-remotever bufbuild/connect-go:latest buf.build/bufbuild/buf:main | jq -r .command
 
 go get buf.build/gen/go/bufbuild/buf/bufbuild/connect-go@v1.5.2-20230222163843-c806e06ce889.1
 
-$ go run main.go bufbuild/connect-go:latest buf.build/bufbuild/buf:main | jq -r .hint
+$ bsr-remotever bufbuild/connect-go:latest buf.build/bufbuild/buf:main | jq -r .hint
 
 Set GOPRIVATE=buf.build/gen/go
 
@@ -61,11 +65,11 @@ See https://docs.buf.build/bsr/remote-packages/go#private for more details.
 #### NPM
 
 ```sh
-$ go run main.go bufbuild/connect-es:latest buf.build/bufbuild/buf:main | jq -r .command
+$ bsr-remotever bufbuild/connect-es:latest buf.build/bufbuild/buf:main | jq -r .command
 
 npm install @buf/bufbuild_buf.bufbuild_connect-es@v0.8.0-20230222163843-c806e06ce889.1
 
-$ go run main.go bufbuild/connect-es:latest buf.build/bufbuild/buf:main | jq -r .hint
+$ bsr-remotever bufbuild/connect-es:latest buf.build/bufbuild/buf:main | jq -r .hint
 
 Don't forget to update the registry config:
 
