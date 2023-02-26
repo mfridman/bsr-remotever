@@ -32,15 +32,18 @@ func main() {
 	log.SetFlags(0)
 
 	if len(os.Args) != 3 {
-		log.Fatalf("must provide exactly 2 arguments: plugin and module reference\nexample: remotever bufbuild/connect-es:latest buf.build/acme/petapis:latest")
+		log.Fatalf("must provide exactly 2 arguments: plugin and module reference\nexample: bsr-remotever bufbuild/connect-es:latest buf.build/acme/petapis:latest")
 	}
 	pluginRef, err := newPluginRef(os.Args[1])
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to parse plugin reference: %v", err)
 	}
 	moduleRef, err := newModuleRef(os.Args[2])
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to parse module reference: %v", err)
+	}
+	if pluginRef.remote != moduleRef.remote {
+		log.Fatalf("plugin and module must be from the same remote: %s != %s", pluginRef.remote, moduleRef.remote)
 	}
 	ctx := context.Background()
 	var (
@@ -107,7 +110,6 @@ type pluginResp struct {
 	registryType registryv1alpha1.PluginRegistryType
 }
 
-// resolvePlugin returns the plugin version and revision.
 func resolvePlugin(ctx context.Context, p *pluginRef) (*pluginResp, error) {
 	apiURL := apiPrefix + p.remote
 	retryClient := retryablehttp.NewClient()
@@ -129,8 +131,10 @@ func resolvePlugin(ctx context.Context, p *pluginRef) (*pluginResp, error) {
 		return nil, err
 	}
 	plugin := resp.Msg.GetPlugin()
-	switch plugin.RegistryType {
-	case registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_GO, registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_NPM:
+	switch plugin.GetRegistryType() {
+	case
+		registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_GO,
+		registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_NPM:
 	default:
 		return nil, fmt.Errorf("plugin is not compatible with BSR Remote Packages: registry type: %v", plugin.RegistryType.String())
 	}
@@ -168,7 +172,7 @@ func resolveModule(ctx context.Context, m *moduleRef) (*moduleResp, error) {
 	})
 	resp, err := client.GetRepositoryCommitByReference(ctx, req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	commit := resp.Msg.GetRepositoryCommit()
 
@@ -183,21 +187,21 @@ type moduleRef struct {
 	remote string
 	owner  string
 	name   string
-	// A reference can be either "latest" or a commit name, tag, or draft.
+	// A module reference can be either "latest", "main", a commit name, tag, or draft.
 	reference string
 }
 
 func newModuleRef(s string) (*moduleRef, error) {
 	name, ref, ok := strings.Cut(s, ":")
 	if !ok {
-		return nil, fmt.Errorf("must provide a module in the form of <module>:<version>")
+		return nil, fmt.Errorf("must provide a module in the form of <module>:<reference>")
 	}
 	ss := strings.Split(name, "/")
 	if len(ss) != 3 {
 		return nil, fmt.Errorf("must provide a plugin in the form of <remote>/<owner>/<name>")
 	}
 	if ref == "" {
-		return nil, fmt.Errorf("must provide a valid module refeerence")
+		return nil, fmt.Errorf("must provide a valid module reference")
 	}
 	return &moduleRef{
 		remote:    ss[0],
@@ -243,14 +247,12 @@ type commandVersion struct {
 }
 
 func newAuthInterceptor() connect.Interceptor {
-	return connect.UnaryInterceptorFunc(
-		func(next connect.UnaryFunc) connect.UnaryFunc {
-			return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-				if token := os.Getenv(authTokenEnv); token != "" {
-					req.Header().Set("Authorization", "Bearer "+token)
-				}
-				return next(ctx, req)
-			})
-		},
-	)
+	return connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
+		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+			if token := os.Getenv(authTokenEnv); token != "" {
+				req.Header().Set("Authorization", "Bearer "+token)
+			}
+			return next(ctx, req)
+		})
+	})
 }
