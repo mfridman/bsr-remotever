@@ -68,7 +68,9 @@ func main() {
 	}
 
 	layout := dateTimeLayout
-	if moduleResp.isDraft && pluginResp.registryType == registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_NPM {
+	if moduleResp.isDraft &&
+		(pluginResp.registryType == registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_NPM ||
+			pluginResp.registryType == registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_MAVEN) {
 		layout = dateTimeLayoutZero
 	}
 	syntheticVersion := fmt.Sprintf("%s-%s-%s.%d",
@@ -97,6 +99,26 @@ func main() {
 		output.Hint = fmt.Sprintf("Don't forget to update the registry config:\n\n\tnpm config set @buf:registry https://%s/gen/npm/v1/\n\n", remote) +
 			fmt.Sprintf("For private modules you'll need to set the token:\n\n\tnpm config set //%s/gen/npm/v1/:_authToken {token}\n\n", remote) +
 			"See https://docs.buf.build/bsr/remote-packages/npm#private for more details."
+	case registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_MAVEN:
+		syntheticVersion := fmt.Sprintf(
+			"%s.%d.%s.%s",
+			// pluginResp.version does not have the leading v, but semver expects the leading v.
+			// Add it on, canonicalize it, and then remove it.
+			strings.TrimPrefix(semver.Canonical(pluginResp.version), "v"),
+			pluginResp.revision,
+			moduleResp.commitCreateAt.UTC().Format(layout),
+			moduleResp.commitName[:12],
+		)
+		output.Version = syntheticVersion
+		// remoteComponents := strings.Split(remote, ".")
+		// var groupID string
+		// for i := len(remoteComponents) - 1; i >= 0; i-- {
+		// 	groupID += remoteComponents[i] + "."
+		// }
+		// groupID += "gen"
+		// mavenName := fmt.Sprintf("%s_%s_%s_%s", moduleRef.owner, moduleRef.name, pluginRef.owner, pluginRef.name)
+		// No real one-liner for mvn/gradle, so omitting output.Command.
+		output.Hint = "For private modules you'll need to update your Maven / Gradle configuration\n\nSee https://buf.build/docs/bsr/remote-packages/maven for more details"
 	}
 
 	by, err := json.MarshalIndent(output, "", "  ")
@@ -136,7 +158,8 @@ func resolvePlugin(ctx context.Context, p *pluginRef) (*pluginResp, error) {
 	switch plugin.GetRegistryType() {
 	case
 		registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_GO,
-		registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_NPM:
+		registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_NPM,
+		registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_MAVEN:
 	default:
 		return nil, fmt.Errorf("plugin is not compatible with BSR Remote Packages: registry type: %v", plugin.RegistryType.String())
 	}
