@@ -198,7 +198,7 @@ func newModuleRef(s string) (*moduleRef, error) {
 	if !ok {
 		return nil, fmt.Errorf("must provide a module in the form of <module>:<reference>")
 	}
-	remote, owner, name, err := parseRemoteOwnerName(name)
+	remote, owner, name, err := parseRemoteOwnerName(name, "module")
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +225,7 @@ func newPluginRef(s string) (*pluginRef, error) {
 	if !ok {
 		return nil, fmt.Errorf("must provide a plugin in the form of <plugin>:<version>")
 	}
-	remote, owner, name, err := parseRemoteOwnerName(name)
+	remote, owner, name, err := parseRemoteOwnerName(name, "plugin")
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +259,7 @@ func newAuthInterceptor() connect.Interceptor {
 	})
 }
 
-func parseRemoteOwnerName(remoteOwnerName string) (remote string, owner string, name string, err error) {
+func parseRemoteOwnerName(remoteOwnerName string, refType string) (remote string, owner string, name string, err error) {
 	ss := strings.Split(remoteOwnerName, "/")
 	switch len(ss) {
 	case 2:
@@ -267,6 +267,6 @@ func parseRemoteOwnerName(remoteOwnerName string) (remote string, owner string, 
 	case 3:
 		return ss[0], ss[1], ss[2], nil
 	default:
-		return "", "", "", fmt.Errorf("must provide a plugin in the form of <remote>/<owner>/<name> or <owner>/<name>")
+		return "", "", "", fmt.Errorf("must provide a %s in the form of <remote>/<owner>/<name> or <owner>/<name>", refType)
 	}
 }
