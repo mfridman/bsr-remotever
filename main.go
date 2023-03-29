@@ -19,9 +19,8 @@ import (
 )
 
 const (
-	apiPrefix    = "https://api."
-	authTokenEnv = "BUF_TOKEN"
-
+	apiPrefix     = "https://api."
+	authTokenEnv  = "BUF_TOKEN"
 	defaultRemote = "buf.build"
 )
 
