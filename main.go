@@ -32,7 +32,7 @@ func main() {
 	log.SetFlags(0)
 
 	if len(os.Args) != 3 {
-		log.Fatalf("must provide exactly 2 arguments: plugin and module reference\nexample: bsr-remotever bufbuild/connect-es:latest buf.build/acme/petapis:latest")
+		log.Fatalf("must provide exactly 2 arguments: plugin and module reference\nexample: bsr-remotever buf.build/bufbuild/connect-es:latest buf.build/acme/petapis:latest")
 	}
 	pluginRef, err := newPluginRef(os.Args[1])
 	if err != nil {
@@ -45,6 +45,7 @@ func main() {
 	if pluginRef.remote != moduleRef.remote {
 		log.Fatalf("plugin and module must be from the same remote: %s != %s", pluginRef.remote, moduleRef.remote)
 	}
+	remote := pluginRef.remote
 	ctx := context.Background()
 	var (
 		pluginResp *pluginResp
@@ -87,13 +88,13 @@ func main() {
 			goName,
 			syntheticVersion,
 		)
-		output.Hint = "Set GOPRIVATE=buf.build/gen/go\n\n" +
+		output.Hint = fmt.Sprintf("Set GOPRIVATE=%s/gen/go\n\n", remote) +
 			"See https://docs.buf.build/bsr/remote-packages/go#private for more details."
 	case registryv1alpha1.PluginRegistryType_PLUGIN_REGISTRY_TYPE_NPM:
 		npmName := fmt.Sprintf("%s_%s.%s_%s", moduleRef.owner, moduleRef.name, pluginRef.owner, pluginRef.name)
 		output.Command = fmt.Sprintf("npm install @buf/%s@%s", npmName, syntheticVersion)
-		output.Hint = "Don't forget to update the registry config:\n\n\tnpm config set @buf:registry https://buf.build/gen/npm/v1/\n\n" +
-			"For private modules you'll need to set the token:\n\n\tnpm config set //buf.build/gen/npm/v1/:_authToken {token}\n\n" +
+		output.Hint = fmt.Sprintf("Don't forget to update the registry config:\n\n\tnpm config set @buf:registry https://%s/gen/npm/v1/\n\n", remote) +
+			fmt.Sprintf("For private modules you'll need to set the token:\n\n\tnpm config set //%s/gen/npm/v1/:_authToken {token}\n\n", remote) +
 			"See https://docs.buf.build/bsr/remote-packages/npm#private for more details."
 	}
 
@@ -198,7 +199,7 @@ func newModuleRef(s string) (*moduleRef, error) {
 	}
 	ss := strings.Split(name, "/")
 	if len(ss) != 3 {
-		return nil, fmt.Errorf("must provide a plugin in the form of <remote>/<owner>/<name>")
+		return nil, fmt.Errorf("must provide a module in the form of <remote>/<owner>/<name>")
 	}
 	if ref == "" {
 		return nil, fmt.Errorf("must provide a valid module reference")
@@ -224,8 +225,8 @@ func newPluginRef(s string) (*pluginRef, error) {
 		return nil, fmt.Errorf("must provide a plugin in the form of <plugin>:<version>")
 	}
 	ss := strings.Split(name, "/")
-	if len(ss) != 2 {
-		return nil, fmt.Errorf("must provide a plugin in the form of <owner>/<name>")
+	if len(ss) != 3 {
+		return nil, fmt.Errorf("must provide a plugin in the form of <remote>/<owner>/<name>")
 	}
 	if version != "latest" {
 		if !semver.IsValid(version) {
@@ -233,9 +234,9 @@ func newPluginRef(s string) (*pluginRef, error) {
 		}
 	}
 	return &pluginRef{
-		remote:  "buf.build",
-		owner:   ss[0],
-		name:    ss[1],
+		remote:  ss[0],
+		owner:   ss[1],
+		name:    ss[2],
 		version: version,
 	}, nil
 }

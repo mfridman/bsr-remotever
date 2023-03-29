@@ -43,7 +43,7 @@ like so:
 - module: `buf.build/bufbuild/buf:latest`
 
 ```sh
-$ bsr-remotever bufbuild/connect-go:latest buf.build/bufbuild/buf:latest | jq -r .version
+$ bsr-remotever buf.build/bufbuild/connect-go:latest buf.build/bufbuild/buf:latest | jq -r .version
 
 v1.5.2-20230222163843-c806e06ce889.1
 ```
@@ -52,7 +52,7 @@ v1.5.2-20230222163843-c806e06ce889.1
 - module: `buf.build/bufbuild/buf:latest`
 
 ```sh
-$ bsr-remotever protocolbuffers/go:latest buf.build/bufbuild/buf:latest | jq -r .version
+$ bsr-remotever buf.build/protocolbuffers/go:latest buf.build/bufbuild/buf:latest | jq -r .version
 
 v1.28.1-20230222163843-c806e06ce889.4
 ```
@@ -66,7 +66,7 @@ E.g., the [bufbuild/buf](https://buf.build/bufbuild/buf) module has a tag
 We use the tag as a module reference:
 
 ```sh
-$ bsr-remotever bufbuild/connect-es:latest buf.build/bufbuild/buf:60ee4a1ad9fe22392fea98967d858de8f15131ac | jq -r .version
+$ bsr-remotever buf.build/bufbuild/connect-es:latest buf.build/bufbuild/buf:60ee4a1ad9fe22392fea98967d858de8f15131ac | jq -r .version
 
 v0.8.0-20230222163843-c806e06ce889.1
 ```
@@ -81,11 +81,11 @@ with helpful hints:
 #### Go
 
 ```sh
-$ bsr-remotever bufbuild/connect-go:latest buf.build/bufbuild/buf:main | jq -r .command
+$ bsr-remotever buf.build/bufbuild/connect-go:latest buf.build/bufbuild/buf:main | jq -r .command
 
 go get buf.build/gen/go/bufbuild/buf/bufbuild/connect-go@v1.5.2-20230222163843-c806e06ce889.1
 
-$ bsr-remotever bufbuild/connect-go:latest buf.build/bufbuild/buf:main | jq -r .hint
+$ bsr-remotever buf.build/bufbuild/connect-go:latest buf.build/bufbuild/buf:main | jq -r .hint
 
 Set GOPRIVATE=buf.build/gen/go
 
@@ -95,11 +95,11 @@ See https://docs.buf.build/bsr/remote-packages/go#private for more details.
 #### NPM
 
 ```sh
-$ bsr-remotever bufbuild/connect-es:latest buf.build/bufbuild/buf:main | jq -r .command
+$ bsr-remotever buf.build/bufbuild/connect-es:latest buf.build/bufbuild/buf:main | jq -r .command
 
 npm install @buf/bufbuild_buf.bufbuild_connect-es@v0.8.0-20230222163843-c806e06ce889.1
 
-$ bsr-remotever bufbuild/connect-es:latest buf.build/bufbuild/buf:main | jq -r .hint
+$ bsr-remotever buf.build/bufbuild/connect-es:latest buf.build/bufbuild/buf:main | jq -r .hint
 
 Don't forget to update the registry config:
 
