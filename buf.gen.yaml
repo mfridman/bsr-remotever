@@ -1,0 +1,27 @@
+version: v2
+clean: true
+inputs:
+  - module: buf.build/bufbuild/registry
+    paths:
+      - buf/registry/module/v1/label_service.proto
+      - buf/registry/module/v1/commit_service.proto
+  # - module: buf.build/bufbuild/buf
+  #   paths:
+  #     - buf/alpha/registry/v1alpha1/repository_commit.proto
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/mfridman/bsr-remotever/gen
+
+plugins:
+  - remote: buf.build/protocolbuffers/go
+    include_imports: true
+    out: gen
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-connectclient-go
+    include_imports: true
+    out: gen
+    opt:
+      - paths=source_relative
