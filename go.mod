@@ -1,15 +1,12 @@
 module github.com/mfridman/bsr-remotever
 
-go 1.23.0
-
-toolchain go1.24.2
+go 1.20
 
 require (
 	buf.build/gen/go/bufbuild/buf/bufbuild/connect-go v1.5.2-20230222163843-c806e06ce889.1
 	buf.build/gen/go/bufbuild/buf/protocolbuffers/go v1.28.1-20230222163843-c806e06ce889.4
 	github.com/bufbuild/connect-go v1.5.2
 	github.com/hashicorp/go-retryablehttp v0.7.2
-	github.com/mfridman/go-kit v0.0.0-20240825143846-faa407dc05b3
 	golang.org/x/mod v0.8.0
 	golang.org/x/sync v0.1.0
 )
